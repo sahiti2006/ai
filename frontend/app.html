@@ -26,16 +26,26 @@
       id="answer"
       rows="6"
       cols="60"
-      placeholder="Type Answer Here"
+      placeholder="Type Answer Here or Speak"
     ></textarea>
 
     <br /><br />
+
+    <button onclick="startListening()">🎤 Start Speaking</button>
+
+    <button onclick="stopListening()">⏹ Stop Speaking</button>
+
+    <p id="voiceStatus">🎤 Not Listening</p>
+
+    <br />
 
     <button onclick="evaluateAnswer()">Submit Answer</button>
 
     <pre id="result"></pre>
 
     <script>
+      let recognition;
+
       async function register() {
         await fetch("http://127.0.0.1:5000/register", {
           method: "POST",
@@ -60,8 +70,45 @@
         );
 
         const data = await response.json();
+      }
 
-        document.getElementById("question").innerText = data.question;
+      function startListening() {
+        const SpeechRecognition =
+          window.SpeechRecognition || window.webkitSpeechRecognition;
+
+        if (!SpeechRecognition) {
+          alert("Speech Recognition not supported in this browser.");
+          return;
+        }
+
+        recognition = new SpeechRecognition();
+
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = "en-US";
+
+        document.getElementById("voiceStatus").innerText = "🔴 Listening...";
+
+        recognition.onresult = function (event) {
+          let transcript = "";
+
+          for (let i = 0; i < event.results.length; i++) {
+            transcript += event.results[i][0].transcript;
+          }
+
+          document.getElementById("answer").value = transcript;
+        };
+
+        recognition.start();
+      }
+
+      function stopListening() {
+        if (recognition) {
+          recognition.stop();
+        }
+
+        document.getElementById("voiceStatus").innerText =
+          "✅ Recording Complete";
       }
 
       async function evaluateAnswer() {
@@ -72,7 +119,6 @@
           },
           body: JSON.stringify({
             question: document.getElementById("question").innerText,
-
             answer: document.getElementById("answer").value,
           }),
         });
