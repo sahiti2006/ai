@@ -1,131 +1,308 @@
 <!doctype html>
-<html>
+<html lang="en">
   <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AI Interview Assistant</title>
+
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Segoe UI", sans-serif;
+      }
+
+      body {
+        background: linear-gradient(135deg, #f8f4ff, #ede4ff);
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+      }
+
+      .container {
+        width: 750px;
+        background: white;
+        padding: 35px;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(138, 43, 226, 0.15);
+      }
+
+      h1 {
+        text-align: center;
+        color: #7c3aed;
+        margin-bottom: 10px;
+        font-size: 2.2rem;
+      }
+
+      p {
+        text-align: center;
+        color: #8b5cf6;
+        margin-bottom: 20px;
+      }
+
+      h3 {
+        color: #8b5cf6;
+        margin-bottom: 12px;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 8px;
+        color: #8b5cf6;
+        font-weight: 600;
+      }
+
+      input,
+      select,
+      textarea {
+        width: 100%;
+        padding: 12px 15px;
+        border: 2px solid #ddd6fe;
+        border-radius: 10px;
+        font-size: 15px;
+        margin-bottom: 15px;
+        outline: none;
+        transition: 0.3s;
+        background: #faf8ff;
+      }
+
+      input:focus,
+      select:focus,
+      textarea:focus {
+        border-color: #8b5cf6;
+        box-shadow: 0 0 10px rgba(139, 92, 246, 0.2);
+      }
+
+      textarea {
+        resize: none;
+      }
+
+      button {
+        background: #8b5cf6;
+        color: white;
+        border: none;
+        padding: 12px 20px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 15px;
+        font-weight: 600;
+        transition: 0.3s;
+        margin-right: 10px;
+        margin-bottom: 10px;
+      }
+
+      button:hover {
+        background: #7c3aed;
+        transform: translateY(-2px);
+      }
+
+      hr {
+        margin: 25px 0;
+        border: none;
+        height: 1px;
+        background: #e9d5ff;
+      }
+
+      #question {
+        background: #f5f0ff;
+        padding: 15px;
+        border-left: 5px solid #8b5cf6;
+        border-radius: 10px;
+        color: #5b21b6;
+        margin-top: 15px;
+        margin-bottom: 15px;
+        min-height: 50px;
+      }
+
+      #result {
+        margin-top: 20px;
+        background: #faf8ff;
+        padding: 15px;
+        border-radius: 10px;
+        border-left: 5px solid #a78bfa;
+        color: #4c1d95;
+        white-space: pre-wrap;
+        min-height: 80px;
+      }
+
+      #status {
+        text-align: left;
+        margin-top: -5px;
+        margin-bottom: 15px;
+        color: #7c3aed;
+        font-weight: bold;
+      }
+    </style>
   </head>
+
   <body>
-    <h1>AI Interview Assistant</h1>
+    <div class="container">
+      <h1>🤖 AI Interview Assistant</h1>
+      <p>Beyond Traditional Interviews</p>
 
-    <h3>Registration</h3>
+      <h3>Registration</h3>
 
-    <input type="text" id="name" placeholder="Name" /><br /><br />
+      <input type="text" id="name" placeholder="Enter Your Name" />
 
-    <input type="email" id="email" placeholder="Email" /><br /><br />
+      <input type="email" id="email" placeholder="Enter Your Email" />
 
-    <input type="text" id="role" placeholder="Role" /><br /><br />
+      <label for="role">Select Role</label>
 
-    <button onclick="register()">Register</button>
+      <select id="role">
+        <option value="">-- Select Role --</option>
+        <option value="Frontend Developer">Frontend Developer</option>
+        <option value="Backend Developer">Backend Developer</option>
+      </select>
 
-    <hr />
+      <button onclick="register()">Register</button>
 
-    <button onclick="getQuestion()">Generate Question</button>
+      <hr />
 
-    <h3 id="question"></h3>
+      <button onclick="getQuestion()">Generate Interview Question</button>
 
-    <textarea
-      id="answer"
-      rows="6"
-      cols="60"
-      placeholder="Type Answer Here or Speak"
-    ></textarea>
+      <h3 style="margin-top: 20px">Question</h3>
 
-    <br /><br />
+      <div id="question">Your interview question will appear here...</div>
 
-    <button onclick="startListening()">🎤 Start Speaking</button>
+      <h3>Your Answer</h3>
 
-    <button onclick="stopListening()">⏹ Stop Speaking</button>
+      <textarea
+        id="answer"
+        rows="6"
+        placeholder="Type your answer here or use voice..."
+      ></textarea>
 
-    <p id="voiceStatus">🎤 Not Listening</p>
+      <div id="status">🎤 Ready</div>
 
-    <br />
+      <button onclick="startListening()">🎤 Start Recording</button>
+      <button onclick="startListening()">🎤 Stop Recording</button>
+      <button onclick="evaluateAnswer()">Submit Answer</button>
 
-    <button onclick="evaluateAnswer()">Submit Answer</button>
+      <h3 style="margin-top: 20px">Evaluation Result</h3>
 
-    <pre id="result"></pre>
+      <pre id="result">Evaluation will appear here...</pre>
+    </div>
 
     <script>
-      let recognition;
-
       async function register() {
-        await fetch("http://127.0.0.1:5000/register", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            name: document.getElementById("name").value,
-            email: document.getElementById("email").value,
-            role: document.getElementById("role").value,
-          }),
-        });
+        try {
+          await fetch("http://127.0.0.1:5000/register", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              name: document.getElementById("name").value,
+              email: document.getElementById("email").value,
+              role: document.getElementById("role").value,
+            }),
+          });
 
-        alert("Registered Successfully");
+          alert("Registered Successfully!");
+        } catch (error) {
+          alert("Registration Failed!");
+          console.error(error);
+        }
       }
 
       async function getQuestion() {
-        const role = document.getElementById("role").value;
+        try {
+          const role = document.getElementById("role").value;
 
-        const response = await fetch(
-          `http://127.0.0.1:5000/questions?role=${role}`,
-        );
+          const response = await fetch(
+            `http://127.0.0.1:5000/questions?role=${encodeURIComponent(role)}`,
+          );
 
-        const data = await response.json();
+          const data = await response.json();
+
+          document.getElementById("question").innerText =
+            data.question || "No question received.";
+        } catch (error) {
+          document.getElementById("question").innerText =
+            "Failed to load question.";
+          console.error(error);
+        }
       }
+
+      async function evaluateAnswer() {
+        try {
+          const response = await fetch("http://127.0.0.1:5000/evaluation", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              question: document.getElementById("question").innerText,
+              answer: document.getElementById("answer").value,
+            }),
+          });
+
+          const data = await response.json();
+
+          document.getElementById("result").innerText =
+            data.evaluation || "No evaluation received.";
+        } catch (error) {
+          document.getElementById("result").innerText = "Evaluation failed.";
+
+          console.error(error);
+        }
+      }
+
+      let recognition;
 
       function startListening() {
         const SpeechRecognition =
           window.SpeechRecognition || window.webkitSpeechRecognition;
 
         if (!SpeechRecognition) {
-          alert("Speech Recognition not supported in this browser.");
+          alert("Speech Recognition is not supported in this browser.");
           return;
+        }
+
+        // Prevent creating multiple listeners
+        if (recognition) {
+          recognition.stop();
         }
 
         recognition = new SpeechRecognition();
 
+        recognition.lang = "en-IN";
         recognition.continuous = true;
-        recognition.interimResults = true;
-        recognition.lang = "en-US";
-
-        document.getElementById("voiceStatus").innerText = "🔴 Listening...";
-
-        recognition.onresult = function (event) {
-          let transcript = "";
-
-          for (let i = 0; i < event.results.length; i++) {
-            transcript += event.results[i][0].transcript;
-          }
-
-          document.getElementById("answer").value = transcript;
-        };
+        recognition.interimResults = false;
 
         recognition.start();
+
+        document.getElementById("status").innerText =
+          "🎤 Listening... Speak now";
+
+        recognition.onresult = function (event) {
+          const transcript =
+            event.results[event.results.length - 1][0].transcript;
+
+          document.getElementById("answer").value += " " + transcript;
+        };
+
+        recognition.onerror = function (event) {
+          document.getElementById("status").innerText =
+            "❌ Error: " + event.error;
+
+          console.error(event.error);
+        };
+
+        recognition.onend = function () {
+          document.getElementById("status").innerText = "✅ Recording Complete";
+        };
       }
 
       function stopListening() {
         if (recognition) {
           recognition.stop();
+
+          document.getElementById("status").innerText = "⏹️ Recording Stopped";
         }
-
-        document.getElementById("voiceStatus").innerText =
-          "✅ Recording Complete";
-      }
-
-      async function evaluateAnswer() {
-        const response = await fetch("http://127.0.0.1:5000/evaluation", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            question: document.getElementById("question").innerText,
-            answer: document.getElementById("answer").value,
-          }),
-        });
-
-        const data = await response.json();
-
-        document.getElementById("result").innerText = data.evaluation;
       }
     </script>
   </body>
