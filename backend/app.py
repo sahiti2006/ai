@@ -6,8 +6,9 @@ import os
 load_dotenv()
 
 app = Flask(__name__)
-client = genai.Client(
+client = genai.Client(api_key=os.getenv("Api_key")
 )
+
 from mongo import (
     candidates_collection,
     questions_collection,
